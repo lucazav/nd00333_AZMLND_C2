@@ -1,18 +1,140 @@
-*NOTE:* This file is a template that you can use to create the README for your project. The *TODO* comments below will highlight the information you should be sure to include.
+<!-- #region -->
+# Operationalize Machine Learning
 
+The project consists of two subprojects:
 
-# Your Project Title Here
+1) Deploying a model trained by an Azure AutoML experiment in order to deploy it and consume its endpoint
 
-*TODO:* Write an overview to your project.
+2) Creating, publishing and consuming an Azure Machine Learning Pipeline
+
+The first subproject aims to test the AuotML on the Bank Marketing dataset. The best trained model is published on a web service and therefore can be tested by any client through REST api calls.
+
+The second subproject aims to automate the training of the model using AuotML, assuming that the results obtained from the previous subproject are satisfactory. Automation is achieved by creating, publishing and using an ML Pipeline.
+
+In the following paragraphs I will detail all the steps that were necessary to arrive at the final result.
 
 ## Architectural Diagram
-*TODO*: Provide an architectual diagram of the project and give an introduction of each step. An architectural diagram is an image that helps visualize the flow of operations from start to finish. In this case, it has to be related to the completed project, with its various stages that are critical to the overall flow. For example, one stage for managing models could be "using Automated ML to determine the best model". 
+
+A better overview of the phases of the two subprojects is given by the following architectural diagram:
+
+![Project Architectures](./img/Architectures.png)
+
 
 ## Key Steps
-*TODO*: Write a short discription of the key steps. Remeber to include all the screenshots required to demonstrate key steps. 
+
+
+### Authentication
+
+The authentication mode required by the project is via **Service Principal**.
+
+In terms of accessing the resources made available by Azure Machine Learning, authentication via Service Principal is often used when there is a need to automate a workflow using external processes that need to interact with Azure ML. For example, a Service Principal is critical to be able to use Azure ML artifacts from Azure CI/CD Devops Pipelines.
+
+This authentication mode will not be used in the following part of the project. However, it remains the primary mode in more complex automation scenarios.
+
+Next, I share a series of snapshots that summarize the operations performed to properly configure a Service Principal trmaite the *az* tool:
+
+1) Creation of the Server Principal *SP*
+
+![Server Principal creation using az](./img/2020-12-28_11-07-28.png)
+
+2) Correct execution of the `az ad sp show` and `az ml workspace share` commands
+
+![Server Principal role assignment to Workspace](./img/2020-12-28_11-11-33.png)
+
+
+### Automated ML Experiment
+
+In order to run an AutoML experiment from the UI, you must first load the training CSV dataset into Azure ML Studio as a Dataset. Then the AutoML experiment will search for the best transformation pipeline/model/hyperparameters that give the highest performance for the given dataset. The following screenshots show that the AutoML experiment has completed successfully:
+
+1) Bank Marketing CSV correctly loaded as Dataset
+
+![Dataset creation using the Bank Marketing CSV](./img/2020-12-28_12-10-24.png)
+
+2) The AutoML experiment completed with success:
+
+![AutoML experiment successfully completed](./img/2020-12-28_12-11-09.png)
+
+3) The best model found by AutoML is the VotingEnsemble one:
+
+![Best model found by AutoML](./img/2020-12-28_12-11-50.png)
+
+
+### Get Logging and enable "Application Insights"
+
+After the best model is deployed on Azure Container Instance, here the logs taken after the endpoint deployment and the successful enablement of Application Insights:
+
+1) Show endpoint logs and enable "Application Insights"
+
+![Show endpoint logs and enable "Application Insights"](./img/2020-12-28_16-10-37.png)
+
+2) "Application Insights" is enabled for the endpoint
+
+!["Application Insights" enabled for the endpoint](./img/2020-12-28_16-05-00.png)
+
+
+### Swagger Documentation
+
+Using Swagger, it's easy to document the REST Api related to the scoring endpoint. The following screenshot shows with clarity which are the features of the occurrences to give in input to the endpoint:
+
+1) Show Swagger running on localhost
+
+![Swagger running on localhost](./img/2020-12-29_10-23-53.png)
+
+
+### Consume Model Endpoints
+
+Once the model is deployed, a third party application can easily call the endpoint getting the scoring results for the provided input occurrences. Here two examples using first a simple Python code and then using *Apache Benchmark* to get a benchmark for the endpoint:
+
+1) Producing JSON output from the API using a Python script
+
+![Producing JSON output from the API using a Python script](./img/2020-12-29_11-44-16.png)
+
+2) Using Apache Benchmark (ab) against the HTTP API:
+
+![Using Apache Benchmark against the HTTP API](./img/2020-12-29_12-00-22.png)
+
+
+### Create, Publish and Consume a Pipeline
+
+The following screenshots document all the steps performed to create and publish the pipeline:
+
+1) Pipeline created on Azure ML Studio
+
+![Pipeline created on Azure ML Studio](./img/2020-12-29_17-46-43.png)
+
+2) Published pipeline endpoint on Azure ML Studio
+
+![Published pipeline endpoint on Azure ML Studio](./img/2020-12-29_17-28-51.png)
+
+3) Pipeline graph showing the Bank Marketing dataset and the AutoML modules:
+
+![Pipeline graph showing the Bank Marketing dataset and the AutoML modules](./img/2020-12-29_15-47-33.png)
+
+4) Published pipeline overview:
+
+![Published pipeline overview](./img/2020-12-29_17-23-13.png)
+
+5) The Jupyter Notebook cell showing the RunDetails Widget:
+
+![RunDetails Widget](./img/2020-12-29_17-49-18.png)
+
+6) The scheduled run on Azure ML Studio:
+
+![Scheduled run on Azure ML Studio](./img/2020-12-29_17-52-41.png)
+
 
 ## Screen Recording
-*TODO* Provide a link to a screen recording of the project in action. Remember that the screencast should demonstrate:
+
+Here the screencast link showing the entire process of the working ML application:
+
+https://youtu.be/rK49eorVz94
+
 
 ## Standout Suggestions
-*TODO (Optional):* This is where you can provide information about any standout suggestions that you have attempted.
+
+During the course of the project, I spotted two bugs that I immediately reported to the mentors:
+
+1) The *serve.py* script doesn't convert the passed port as integer ([reported here](https://knowledge.udacity.com/questions/427478))
+
+2) The Bank Marketing train dataset is wrongly used as test dataset ([reported here](https://knowledge.udacity.com/questions/427871))
+<!-- #endregion -->
