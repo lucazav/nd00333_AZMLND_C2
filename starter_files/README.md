@@ -20,6 +20,22 @@ A better overview of the phases of the two subprojects is given by the following
 ![Project Architectures](./img/Architectures.png)
 
 
+## How to Improve the Project
+
+There are few possible improvements that can boost model performance:
+
+* Better data transformation / engineering
+    * Variable "duration" is not known before a call is performed. Also, after the end of the call y is obviously known. So this variable should be removed to avoid data leaks
+    * Variable "pdays" is the number of days that passed by after the client was last contacted from a previous campaign. As 999 means client was not previously contacted, a dummy variable "contacted_before" (0 if 999, 1 otherwise) could improve the model performance.
+    * Numeric variables having a non-negligible number of unique values (like "duration", "cons.price.idx", etc.) should be binned
+* Stratified strategies to be adopted as the target variable is imbalanced
+    * Using the cv_split_column_names parameter in the AutoMLConfig settings in order to use calculated columns as placeholders for a custom stratified cross-validation
+* Using a primary metric that takes into account the unbalance of the classes (e.g. AUC weighted)
+    * Otherwise an oversampling technique like SMOTE could be used to balance the classes distribution
+
+The upon mentioned data transformations can be applied to the dataset using an additional *PythonScriptStep* to the pipeline, just before the *AutoMLStep*.
+
+
 ## Key Steps
 
 
@@ -46,15 +62,19 @@ Next, I share a series of snapshots that summarize the operations performed to p
 
 In order to run an AutoML experiment from the UI, you must first load the training CSV dataset into Azure ML Studio as a Dataset. Then the AutoML experiment will search for the best transformation pipeline/model/hyperparameters that give the highest performance for the given dataset. The following screenshots show that the AutoML experiment has completed successfully:
 
-1) Bank Marketing CSV correctly loaded as Dataset
+1) Bank Marketing as registered Dataset
+
+![Bank Marketing as registered Dataset](./img/registered-dataset.png)
+
+2) Bank Marketing CSV correctly loaded as Dataset
 
 ![Dataset creation using the Bank Marketing CSV](./img/2020-12-28_12-10-24.png)
 
-2) The AutoML experiment completed with success:
+3) The AutoML experiment completed with success:
 
 ![AutoML experiment successfully completed](./img/2020-12-28_12-11-09.png)
 
-3) The best model found by AutoML is the VotingEnsemble one:
+4) The best model found by AutoML is the VotingEnsemble one:
 
 ![Best model found by AutoML](./img/2020-12-28_12-11-50.png)
 
@@ -127,7 +147,7 @@ The following screenshots document all the steps performed to create and publish
 
 Here the screencast link showing the entire process of the working ML application:
 
-https://youtu.be/rK49eorVz94
+https://youtu.be/xwfJLoLytS4
 
 
 ## Standout Suggestions
